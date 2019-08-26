@@ -49,11 +49,14 @@ module ActsAsTaggableOn::Taggable
             def #{tag_type}_list=(new_tags)
               parsed_new_list = ActsAsTaggableOn.default_parser.new(new_tags).parse
 
-              if self.class.preserve_tag_order? || parsed_new_list.sort != #{tag_type}_list.sort
-                set_attribute_was('#{tag_type}_list', #{tag_type}_list)
-                write_attribute("#{tag_type}_list", parsed_new_list)
-              end
-
+               if self.class.preserve_tag_order? || parsed_new_list.sort != #{tag_type}_list.sort
+                 if Rails.version.to_f < 6.0
+                   set_attribute_was('#{tag_type}_list', #{tag_type}_list)
+                 else
+                   mutations_from_database.change_to_attribute('#{tag_type}_list')
+                 end
+              write_attribute("#{tag_type}_list", parsed_new_list)
+           end
               set_tag_list_on('#{tags_type}', new_tags)
             end
 
